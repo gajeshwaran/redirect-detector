@@ -2,8 +2,10 @@ import os
 import logging
 from flask import Flask, render_template, request, jsonify
 from playwright.sync_api import sync_playwright
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 logging.basicConfig(level=logging.INFO)
 
 @app.route('/')

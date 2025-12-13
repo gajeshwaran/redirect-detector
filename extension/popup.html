@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Redirect Detector</h1>
+            <div class="status-badge" id="statusBadge">Ready</div>
+        </header>
+
+        <div class="main-content">
+            <div class="current-url-box">
+                <span class="label">Target:</span>
+                <span id="targetUrl" class="url-text">...</span>
+            </div>
+
+            <button id="analyzeBtn" class="primary-btn">
+                <span>Analyze Tab</span>
+            </button>
+
+            <div id="loading" class="hidden">
+                <div class="spinner"></div>
+                <p>Analyzing (this takes 5-10s)...</p>
+            </div>
+
+            <div id="results" class="hidden">
+                <div class="result-card">
+                    <h3>Redirect Chain</h3>
+                    <ul id="chainList" class="chain-list"></ul>
+                </div>
+
+                <div class="result-card error hidden" id="errorCard"></div>
+            </div>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+
+</html>
