@@ -1,0 +1,232 @@
+:root {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #10b981;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    padding: 2rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #60a5fa, #a78bfa);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+header p {
+    color: var(--text-secondary);
+}
+
+.input-section {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+input[type="text"] {
+    flex: 1;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background-color: #1e293b;
+    color: white;
+    font-size: 1rem;
+}
+
+button {
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    border: none;
+    background-color: var(--accent);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background-color: var(--accent-hover);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Loading Spinner */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #334155;
+    border-top: 4px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+#loading {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Results */
+.result-card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #334155;
+}
+
+.result-card h2 {
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 0.5rem;
+}
+
+.url-display {
+    font-family: monospace;
+    background: #0f172a;
+    padding: 0.75rem;
+    border-radius: 6px;
+    word-break: break-all;
+    color: var(--success);
+}
+
+.warning-badge {
+    display: inline-block;
+    background-color: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.data-list {
+    list-style: none;
+    padding: 0;
+}
+
+.data-list li {
+    padding: 0.75rem;
+    border-bottom: 1px solid #334155;
+}
+
+.data-list li:last-child {
+    border-bottom: none;
+}
+
+.risk-high {
+    border-left: 3px solid var(--danger);
+    padding-left: 1rem;
+}
+
+.safe-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.safe-btn:hover {
+    text-decoration: underline;
+}
+
+.empty-state {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Table Styles */
+.table-responsive {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+th,
+td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #334155;
+    vertical-align: top;
+}
+
+th {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+td {
+    color: var(--text-primary);
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-risk {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+}
+
+.badge-safe {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+}
+
+.chain-arrow {
+    color: var(--text-secondary);
+    margin: 0 0.25rem;
+}

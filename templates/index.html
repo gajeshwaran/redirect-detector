@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invisible Redirect & Clickjacking Detector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ Link Analyzer</h1>
+            <p>Reveal invisible redirects, hidden iframes, and clickjacking risks.</p>
+        </header>
+
+        <section class="input-section">
+            <input type="text" id="urlInput" placeholder="Enter URL (e.g., http://example.com)" />
+            <button id="analyzeBtn">Analyze URL</button>
+        </section>
+
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>Scanning URL in a secure sandbox...</p>
+        </div>
+
+        <div id="results" class="hidden">
+            <div class="result-card destination-card">
+                <h2>📍 Final Destination</h2>
+                <p id="finalUrl" class="url-display"></p>
+                <div id="destinationWarning" class="warning-badge hidden">Differs from input!</div>
+                <a id="openLinkBtn" href="#" target="_blank" class="safe-btn">Open Safely (User Control)</a>
+            </div>
+
+            <div class="result-card">
+                <h2>🔀 Redirect Chain</h2>
+                <ul id="redirectList" class="data-list"></ul>
+            </div>
+
+            <div class="result-card">
+                <h2>👻 Hidden Iframes</h2>
+                <ul id="iframeList" class="data-list"></ul>
+                <p id="noIframes" class="empty-state">No hidden iframes detected.</p>
+            </div>
+
+            <div class="result-card">
+                <h2>🖱️ Clickjacking Risks</h2>
+                <ul id="clickjackingList" class="data-list"></ul>
+                <p id="noClickjacking" class="empty-state">No transparent overlays detected.</p>
+            </div>
+
+            <div class="result-card">
+                <h2>📝 Form Risks</h2>
+                <ul id="formList" class="data-list"></ul>
+                <p id="noForms" class="empty-state">No cross-domain forms detected.</p>
+            </div>
+
+            <div class="result-card">
+                <h2>🔗 Deep Link Inspector (Top 10)</h2>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem;">We clicked links on the page so you
+                    don't have to.</p>
+                <div class="table-responsive">
+                    <table id="deepScanTable" class="hidden">
+                        <thead>
+                            <tr>
+                                <th>Link Text</th>
+                                <th>Analysis</th>
+                                <th>Verdict</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deepScanBody"></tbody>
+                    </table>
+                    <p id="noLinks" class="empty-state hidden">No accessible links found to analyze.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>
