@@ -98,10 +98,22 @@ function displayResults(data, originalInput) {
     if (data.server_info) {
         const s = data.server_info;
         const ssl = typeof s.ssl === 'string' ? s.ssl : (s.ssl?.issuer ? `${s.ssl.issuer} (Expires: ${s.ssl.expiry})` : 'Valid');
+
+        let threatIcon = 'fa-check-circle';
+        let threatVal = 'Clean (URLHaus)';
+        let threatStyle = 'color: var(--success)';
+
+        if (data.security_scan && data.security_scan.threat_intel && data.security_scan.threat_intel.malicious) {
+            threatIcon = 'fa-skull-crossbones';
+            threatVal = 'MALWARE DETECTED';
+            threatStyle = 'color: var(--danger); font-weight: bold;';
+        }
+
         const items = [
             { icon: 'fa-network-wired', label: 'IP Address', value: s.ip },
             { icon: 'fa-map-marker-alt', label: 'Location/ISP', value: s.location },
-            { icon: 'fa-lock', label: 'SSL Certificate', value: ssl }
+            { icon: 'fa-lock', label: 'SSL Certificate', value: ssl },
+            { icon: threatIcon, label: 'Global Blacklist', value: `<span style="${threatStyle}">${threatVal}</span>` }
         ];
 
         items.forEach(item => {
@@ -164,11 +176,15 @@ function displayResults(data, originalInput) {
     // 2. Redirect Chain
     const redirectList = document.getElementById('redirectList');
     redirectList.innerHTML = '';
-    data.redirect_chain.forEach((hop, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>Step ${index + 1}:</strong> ${hop.status} <br> <span style="color: #94a3b8; font-size: 0.9em;">${hop.url}</span>`;
-        redirectList.appendChild(li);
-    });
+    if (data.redirect_chain && Array.isArray(data.redirect_chain)) {
+        data.redirect_chain.forEach((hop, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>Step ${index + 1}:</strong> ${hop.status} <br> <span style="color: #94a3b8; font-size: 0.9em;">${hop.url}</span>`;
+            redirectList.appendChild(li);
+        });
+    } else {
+        redirectList.innerHTML = '<li>No redirect information available.</li>';
+    }
 
     // 3. Hidden Iframes
     const iframeList = document.getElementById('iframeList');
@@ -226,7 +242,7 @@ function displayResults(data, originalInput) {
     const noPatterns = document.getElementById('noPatterns');
     patternList.innerHTML = '';
 
-    if (data.security_scan && data.security_scan.suspicious_patterns.length > 0) {
+    if (data.security_scan && data.security_scan.suspicious_patterns && data.security_scan.suspicious_patterns.length > 0) {
         noPatterns.classList.add('hidden');
         data.security_scan.suspicious_patterns.forEach(pattern => {
             const li = document.createElement('li');
@@ -257,7 +273,7 @@ function displayResults(data, originalInput) {
     if (data.network_summary) {
         reqBadge.textContent = `Total Requests: ${data.network_summary.total_requests}`;
 
-        if (data.network_summary.external_domains.length > 0) {
+        if (data.network_summary.external_domains && data.network_summary.external_domains.length > 0) {
             noExternal.classList.add('hidden');
             data.network_summary.external_domains.forEach(domain => {
                 const li = document.createElement('li');

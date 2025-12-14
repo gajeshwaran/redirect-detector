@@ -297,7 +297,10 @@ def analyze():
                     if sub_page:
                         sub_page.close()
 
-            # --- 8. Server & SSL Intelligence ---
+            # --- 8. Threat Intelligence (Global Blacklist) ---
+            threat_report = check_threat_intel(final_url)
+            
+            # --- 9. Server & SSL Intelligence ---
             server_info = {}
             try:
                 domain = urlparse(final_url).netloc
@@ -359,16 +362,22 @@ def analyze():
                 simplified_summary.append(f"➡️ Site redirected you {len(full_chain)-1} times.")
 
             # Phishing Heuristics
-            suspicious_keywords = ['login', 'verify', 'update', 'secure', 'account', 'banking', 'wallet']
+            suspicious_keywords = ['login', 'verify', 'update', 'secure', 'account', 'banking', 'wallet', 'confirm', 'signin']
             url_lower = final_url.lower()
             found_keywords = [kw for kw in suspicious_keywords if kw in url_lower]
             
             if found_keywords:
                 simplified_summary.append(f"⚠️ URL contains suspicious words: {', '.join(found_keywords)}.")
-                phishing_score += 15
+                phishing_score += 40  # INCREASED from 15
+
+            # High Risk TLDs
+            risky_tlds = ['.xyz', '.top', '.gq', '.tk', '.ml', '.cf', '.cn', '.ru']
+            if any(url_lower.endswith(tld) or url_lower.endswith(tld+'/') for tld in risky_tlds):
+                 simplified_summary.append("⚠️ Domain uses a high-risk TLD often used by scammers.")
+                 phishing_score += 25
 
             # Fake urgency in content
-            urgency_words = ['immediate', 'suspended', 'lock', '24 hours']
+            urgency_words = ['immediate', 'suspended', 'lock', '24 hours', 'urgent', 'action required']
             try:
                 content_lower = page_content.lower()
                 for w in urgency_words:
@@ -376,9 +385,20 @@ def analyze():
                         phishing_score += 10
             except: pass
 
-            phishing_verdict = "Low"
-            if phishing_score > 30: phishing_verdict = "Medium"
-            if phishing_score > 60: phishing_verdict = "High"
+            # Threat Intel Penalty
+            if threat_report['malicious']:
+                phishing_score += 100 # Maximum penalty
+                simplified_summary.insert(0, f"⛔ CRITICAL: Detected in Global Blacklist (Malware/Phishing). Tags: {', '.join(threat_report['tags'])}")
+            else:
+                simplified_summary.append("✅ Not found in Global Threat Databases.")
+
+            # Calculate Final Score
+            risk_score = max(0, 100 - phishing_score)
+            
+            verdict = "Safe"
+            if risk_score < 80: verdict = "Suspicious"
+            if risk_score < 50: verdict = "High Risk"
+            if threat_report['malicious']: verdict = "CRITICAL THREAT"
 
             browser.close()
 
@@ -395,6 +415,8 @@ def analyze():
                     'types': [req['resourceType'] for req in network_activity[:50]]
                 },
                 'security_scan': {
+                    'risk_score': risk_score,
+                    'verdict': verdict,
                     'suspicious_patterns': suspicious_patterns,
                     'storage_usage': dom_analysis.get('storage', {}),
                     'headers': security_headers,
