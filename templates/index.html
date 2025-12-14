@@ -33,10 +33,17 @@
                     <input type="text" id="urlInput" placeholder="Paste suspicious URL here..." autocomplete="off" />
                     <div class="input-border"></div>
                 </div>
-                <button id="analyzeBtn">
-                    <span>Analyze</span>
-                    <i class="fa-solid fa-rocket"></i>
-                </button>
+                <div style="display: flex; gap: 0.5rem; flex-direction: column;">
+                    <button id="analyzeBtn" style="width: 100%;">
+                        <span>Analyze</span>
+                        <i class="fa-solid fa-rocket"></i>
+                    </button>
+                    <button id="demoBtn" class="analyze-btn"
+                        style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2);">
+                        <span>Live Demo</span>
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                </div>
             </section>
 
             <div id="loading" class="hidden">
@@ -228,11 +235,72 @@
                         <p id="noLinks" class="empty-state hidden">No accessible links found to analyze.</p>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
+                <!-- Competition Showcase Sections -->
+                <section id="showcase" class="showcase-grid hidden" style="margin-top: 4rem;">
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+                    <!-- The Problem -->
+                    <div class="result-card glass-card" data-tilt>
+                        <div class="card-header">
+                            <i class="fa-solid fa-triangle-exclamation icon-red"></i>
+                            <h2>The Global Problem</h2>
+                        </div>
+                        <p class="showcase-text">
+                            Phishing attacks successfully deceive <strong>3.4 billion</strong> users daily.
+                            Traditional tools only scan the URL text, but modern hackers use
+                            <span class="highlight-red">invisible redirects</span>,
+                            <span class="highlight-red">hidden iframes</span>, and
+                            <span class="highlight-red">clickjacking overlays</span>
+                            to bypass filters.
+                        </p>
+                    </div>
+
+                    <!-- Our Solution -->
+                    <div class="result-card glass-card" data-tilt>
+                        <div class="card-header">
+                            <i class="fa-solid fa-lightbulb icon-glow"></i>
+                            <h2>Our Key Innovation</h2>
+                        </div>
+                        <p class="showcase-text">
+                            We don't just read the link; we <strong>execute it</strong>.
+                            Using a headless Chromium browser, this tool behaves like a real user—
+                            clicking through redirects, rendering the DOM, and detecting
+                            threats that only appear at runtime.
+                        </p>
+                    </div>
+
+                    <!-- Technology Stack -->
+                    <div class="result-card glass-card" style="grid-column: span 2;" data-tilt>
+                        <div class="card-header">
+                            <i class="fa-solid fa-microchip icon-blue"></i>
+                            <h2>Powering the Future</h2>
+                        </div>
+                        <div class="tech-stack">
+                            <div class="tech-item">
+                                <i class="fa-brands fa-python"></i>
+                                <span>Python Flask</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fa-solid fa-robot"></i>
+                                <span>Playwright AI</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fa-brands fa-docker"></i>
+                                <span>Dockerized</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fa-solid fa-cloud"></i>
+                                <span>Cloud Hosted</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <div style="text-align: center; margin-top: 3rem; opacity: 0.7; font-size: 0.9rem;">
+                    <p>Developed for the IET Engineering Competition 2025</p>
+                </div>
+
+                <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 
 </html>

@@ -394,3 +394,69 @@ function applyTiltListener(card) {
         card.style.borderColor = 'var(--border-color)';
     });
 }
+
+// --- Live Demo Logic ---
+document.getElementById('demoBtn').addEventListener('click', () => {
+    // Simulate a scan
+    document.getElementById('urlInput').value = "http://suspicious-bank-login.secure-update.com";
+    document.getElementById('analyzeBtn').click(); // Mock trigger
+
+    // Mock the UI directly for instant demo
+    document.getElementById('results').classList.add('hidden');
+    document.getElementById('loading').classList.remove('hidden');
+    document.querySelector('#loading p').textContent = "SIMULATION: Scanning hidden vectors...";
+
+    setTimeout(() => {
+        document.getElementById('loading').classList.add('hidden');
+
+        // Mock Data
+        const mockData = {
+            final_url: "https://phishing-server-99.xyz/login",
+            redirect_chain: [
+                { status: 301, url: "http://suspicious-bank-login.secure-update.com" },
+                { status: 302, url: "http://bit.ly/hidden-redirect" },
+                { status: 200, url: "https://phishing-server-99.xyz/login" }
+            ],
+            hidden_iframes: [{ src: "http://tracker.com", risks: ["Display None", "Tiny dimensions"] }],
+            clickjacking_risks: [{ tag: "DIV", zIndex: 9999, message: "Invisible overlay detect", opacity: 0 }],
+            form_risks: [{ action: "http://malicious-collector.com", warning: "Exfiltrates data externally" }],
+            deep_scan_results: [
+                { original_text: "Login Support", original_url: "http://help.bank-fake.com", redirected: true, chain: [] },
+                { original_text: "Reset Password", original_url: "http://reset.bank-fake.com", redirected: false, chain: [] }
+            ],
+            security_scan: {
+                risk_score: 15,
+                verdict: "High Risk",
+                suspicious_patterns: ["Dangerous eval()", "Cryptomining"],
+                headers: { "X-Frame-Options": { present: false, value: "Missing", desc: "Clickjacking Protection" } },
+                storage_usage: { cookiesCount: 12, localStorageEntries: 5 },
+                screenshot: null // Demo
+            },
+            server_info: {
+                ip: "192.168.X.X",
+                location: "Russia - Unknown Host",
+                ssl: "Self-Signed / Invalid"
+            },
+            simple_analysis: {
+                summary: [
+                    "⚠️ Site redirects you 2 times.",
+                    "⛔ DANGER: Invisible buttons found (Clickjacking risk).",
+                    "⚠️ Found 1 hidden iframes (invisible boxes).",
+                    "⚠️ URL contains suspicious words: login, secure, bank.",
+                    "❌ Connection is NOT secure (Unencrypted HTTP)."
+                ],
+                phishing_verdict: "High"
+            },
+            network_summary: {
+                total_requests: 45,
+                external_domains: ["tracker.com", "ad-server.net"]
+            }
+        };
+
+        displayResults(mockData, "http://suspicious-bank-login.secure-update.com");
+
+        // Override scroll to results
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+
+    }, 2000); // 2s simulation delay
+});
