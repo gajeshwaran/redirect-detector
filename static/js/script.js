@@ -116,6 +116,54 @@ function displayResults(data, originalInput) {
         noForms.classList.remove('hidden');
     }
 
+    // --- NEW: Security Patterns ---
+    const patternList = document.getElementById('patternList');
+    const noPatterns = document.getElementById('noPatterns');
+    patternList.innerHTML = '';
+
+    if (data.security_scan && data.security_scan.suspicious_patterns.length > 0) {
+        noPatterns.classList.add('hidden');
+        data.security_scan.suspicious_patterns.forEach(pattern => {
+            const li = document.createElement('li');
+            li.style.color = 'var(--danger)';
+            li.innerHTML = `<i class="fa-solid fa-bug"></i> Detected: <strong>${pattern}</strong>`;
+            patternList.appendChild(li);
+        });
+    } else {
+        noPatterns.classList.remove('hidden');
+    }
+
+    // --- NEW: Storage & Cookies ---
+    const storageList = document.getElementById('storageList');
+    storageList.innerHTML = '';
+    if (data.security_scan && data.security_scan.storage_usage) {
+        const s = data.security_scan.storage_usage;
+        storageList.innerHTML += `<li><strong>Cookies Set:</strong> ${s.cookiesCount || 0}</li>`;
+        storageList.innerHTML += `<li><strong>Local Storage Items:</strong> ${s.localStorageEntries || 0}</li>`;
+        storageList.innerHTML += `<li><strong>Session Storage Items:</strong> ${s.sessionStorageEntries || 0}</li>`;
+    }
+
+    // --- NEW: Network Activity ---
+    const extList = document.getElementById('externalDomainsList');
+    const noExternal = document.getElementById('noExternal');
+    const reqBadge = document.getElementById('totalRequests');
+    extList.innerHTML = '';
+
+    if (data.network_summary) {
+        reqBadge.textContent = `Total Requests: ${data.network_summary.total_requests}`;
+
+        if (data.network_summary.external_domains.length > 0) {
+            noExternal.classList.add('hidden');
+            data.network_summary.external_domains.forEach(domain => {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="fa-solid fa-globe"></i> ${domain}`;
+                extList.appendChild(li);
+            });
+        } else {
+            noExternal.classList.remove('hidden');
+        }
+    }
+
     // 6. Deep Scan Results
     const deepScanTable = document.getElementById('deepScanTable');
     const deepScanBody = document.getElementById('deepScanBody');

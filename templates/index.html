@@ -81,7 +81,8 @@
                             <h2>Hidden Iframes</h2>
                         </div>
                         <ul id="iframeList" class="data-list"></ul>
-                        <p id="noIframes" class="empty-state"><i class="fa-solid fa-check-circle"></i> No hidden iframes detected.</p>
+                        <p id="noIframes" class="empty-state"><i class="fa-solid fa-check-circle"></i> No hidden iframes
+                            detected.</p>
                     </div>
 
                     <div class="result-card glass-card" data-tilt>
@@ -90,21 +91,60 @@
                             <h2>Clickjacking</h2>
                         </div>
                         <ul id="clickjackingList" class="data-list"></ul>
-                        <p id="noClickjacking" class="empty-state"><i class="fa-solid fa-check-circle"></i> No clickjacking risks.</p>
+                        <p id="noClickjacking" class="empty-state"><i class="fa-solid fa-check-circle"></i> No
+                            clickjacking risks.</p>
                     </div>
                 </div>
 
                 <div class="result-card glass-card" data-tilt>
-                     <div class="card-header">
+                    <div class="card-header">
                         <i class="fa-solid fa-keyboard icon-orange"></i>
                         <h2>Form Risks</h2>
                     </div>
                     <ul id="formList" class="data-list"></ul>
-                    <p id="noForms" class="empty-state"><i class="fa-solid fa-check-circle"></i> No hazardous forms found.</p>
+                    <p id="noForms" class="empty-state"><i class="fa-solid fa-check-circle"></i> No hazardous forms
+                        found.</p>
+                </div>
+
+                <!-- NEW: Advanced Security Scan -->
+                <div class="grid-2-col">
+                    <div class="result-card glass-card" data-tilt>
+                        <div class="card-header">
+                            <i class="fa-solid fa-user-secret icon-red"></i>
+                            <h2>Security Patterns</h2>
+                        </div>
+                        <ul id="patternList" class="data-list"></ul>
+                        <p id="noPatterns" class="empty-state"><i class="fa-solid fa-check-circle"></i> No suspicious
+                            keywords found.</p>
+                    </div>
+
+                    <div class="result-card glass-card" data-tilt>
+                        <div class="card-header">
+                            <i class="fa-solid fa-database icon-blue"></i>
+                            <h2>Storage & Cookies</h2>
+                        </div>
+                        <ul id="storageList" class="data-list"></ul>
+                    </div>
+                </div>
+
+                <!-- NEW: Network Activity -->
+                <div class="result-card glass-card" data-tilt>
+                    <div class="card-header">
+                        <i class="fa-solid fa-network-wired icon-teal"></i>
+                        <h2>Network Activity</h2>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <span id="totalRequests" class="badge-new"
+                            style="background: rgba(59, 130, 246, 0.2);">Requests: 0</span>
+                    </div>
+                    <h3>External Domains Contacted:</h3>
+                    <ul id="externalDomainsList" class="data-list"></ul>
+                    <p id="noExternal" class="empty-state"><i class="fa-solid fa-check-circle"></i> No 3rd party
+                        requests.</p>
                 </div>
 
                 <div class="result-card glass-card" data-tilt>
-                     <div class="card-header">
+                    <div class="card-header">
                         <i class="fa-solid fa-spider icon-teal"></i>
                         <h2>Deep Link Inspector <span class="subtitle">(Top 10)</span></h2>
                     </div>

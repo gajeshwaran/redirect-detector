@@ -1,5 +1,7 @@
 import os
 import logging
+import re
+from urllib.parse import urlparse
 from flask import Flask, render_template, request, jsonify
 from playwright.sync_api import sync_playwright
 from flask_cors import CORS
@@ -26,41 +28,67 @@ def analyze():
     browser = None
     try:
         with sync_playwright() as p:
-            # Use a verified user agent to look like a real browser
+            # Launch browser with security sandbox disabled for container environments
             browser_type = p.chromium
             browser = browser_type.launch(headless=True, args=['--no-sandbox', '--disable-setuid-sandbox'])
+            
+            # Create a context that mimics a real user
             context = browser.new_context(
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                 viewport={'width': 1280, 'height': 720},
-                ignore_https_errors=True  # Important for analyzing suspicious sites
+                ignore_https_errors=True
             )
             page = context.new_page()
 
-            # 1. Redirect Analysis
+            # --- 1. Network & Resource Logging ---
+            network_activity = []
+            external_domains = set()
+            page_netloc = urlparse(url).netloc
+
+            def handle_request(request):
+                try:
+                    # Log request details
+                    network_activity.append({
+                        'url': request.url[:150],  # Truncate long URLs
+                        'method': request.method,
+                        'resourceType': request.resource_type
+                    })
+                    
+                    # Identify external domains (potential trackers or C2)
+                    req_netloc = urlparse(request.url).netloc
+                    if req_netloc and req_netloc != page_netloc and not req_netloc.endswith('.' + page_netloc):
+                        external_domains.add(req_netloc)
+                except Exception:
+                    pass
+
+            page.on("request", handle_request)
+
+            # --- 2. Navigation & Redirects ---
             full_chain = []
             final_url = url
             
             try:
-                # Main Navigation with robust timeout
+                logging.info(f"Navigating to {url}")
                 response = page.goto(url, wait_until='networkidle', timeout=60000)
                 final_url = page.url
                 
-                # Robust chain reconstruction
+                # Reconstruct the redirect chain
                 request_chain = []
                 if response:
                     current_request = response.request
                     while current_request:
                         redirect_origin = current_request.redirected_from
                         if redirect_origin:
+                            status = 'Redirect'
+                            # Try to get status from the response if possible, but redirect responses are often internal
                             request_chain.insert(0, {
                                 'url': redirect_origin.url,
-                                'status': 'Redirect' 
+                                'status': status
                             })
                             current_request = redirect_origin
                         else:
                             break
                     
-                    # Add final status
                     status_code = response.status
                     full_chain = request_chain + [{'url': final_url, 'status': status_code}]
                 else:
@@ -70,60 +98,81 @@ def analyze():
                 logging.error(f"Navigation error: {e}")
                 return jsonify({'error': f'Failed to load page: {str(e)}'}), 500
 
-            # 2. Hidden Content & 3. Clickjacking Detection
-            # We inject script to analyze the DOM safely
+            # --- 3. Content Security & Pattern Analysis ---
+            # Scan the HTML content for suspicious keywords
             try:
-                analysis_results = page.evaluate('''() => {
+                page_content = page.content()
+                suspicious_patterns = []
+                
+                patterns = {
+                    'Dangerous eval()': r'eval\(',
+                    'Document Write': r'document\.write\(',
+                    'VBScript': r'vbscript',
+                    'Base64 Decode': r'atob\(',
+                    'Cryptomining': r'Crypto|miner|coinhive',
+                    'Anti-Frame (Clickjacking Protection)': r'X-Frame-Options'
+                }
+                
+                for name, regex in patterns.items():
+                    if re.search(regex, page_content, re.IGNORECASE):
+                        suspicious_patterns.append(name)
+            except Exception as e:
+                logging.error(f"Content analysis error: {e}")
+                suspicious_patterns = []
+
+            # --- 4. DOM Analysis (Iframes, Clickjacking, Storage) ---
+            try:
+                dom_analysis = page.evaluate('''() => {
                     const hidden_iframes = [];
                     const risky_click_elements = [];
                     const risky_forms = [];
-
-                    // Helper to check visibility
-                    function isHidden(el) {
-                        const style = window.getComputedStyle(el);
-                        return (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0' || style.width === '0px' || style.height === '0px');
-                    }
+                    
+                    // Storage Analysis
+                    const storageUsage = {
+                        localStorageEntries: Object.keys(localStorage).length,
+                        sessionStorageEntries: Object.keys(sessionStorage).length,
+                        cookiesCount: document.cookie.split(';').filter(c => c.trim()).length
+                    };
 
                     // Iframe Analysis
                     document.querySelectorAll('iframe').forEach(iframe => {
                         const style = window.getComputedStyle(iframe);
                         const rect = iframe.getBoundingClientRect();
-                        
                         let risk = [];
-                        if (style.opacity == '0') risk.push('Opacity 0');
-                        if (rect.width < 5 || rect.height < 5) risk.push('Tiny dimension');
-                        if (rect.left < -100 || rect.top < -100) risk.push('Off-screen');
+                        
+                        // Check for hidden or tiny iframes
+                        if (style.opacity === '0') risk.push('Opacity 0');
+                        if (style.visibility === 'hidden') risk.push('Hidden Visibility');
                         if (style.display === 'none') risk.push('Display None');
+                        if (rect.width < 5 || rect.height < 5) risk.push('Tiny dimensions');
+                        if (rect.left < -100 || rect.top < -100) risk.push('Positioned Off-screen');
                         
                         if (risk.length > 0) {
                             hidden_iframes.push({
                                 src: iframe.src || 'about:blank',
-                                risks: risk,
-                                location: {top: rect.top, left: rect.left}
+                                risks: risk
                             });
                         }
                     });
 
-                    // Clickjacking / UI Redress (High Z-Index + Transparency)
+                    // Clickjacking / Overlay Analysis
                     const allElements = document.querySelectorAll('div, span, a, button, img');
                     allElements.forEach(el => {
                         const style = window.getComputedStyle(el);
                         const zIndex = parseInt(style.zIndex, 10);
                         
-                        // Check for potential overlay elements that are clickable
+                        // High Z-Index elements
                         if (!isNaN(zIndex) && zIndex > 50) {
                             const rect = el.getBoundingClientRect();
-                            // Check opacity/transparency
                             const opacity = parseFloat(style.opacity);
                             
-                            // If it covers significant area and is effectively invisible
-                            if (rect.width > 50 && rect.height > 50) {
-                                if (opacity < 0.1) {
+                            // Large area, clickable, but invisible/transparent
+                            if (rect.width > 50 && rect.height > 50 && style.pointerEvents !== 'none') {
+                                if (opacity < 0.1 || (style.backgroundColor.includes('rgba') && style.backgroundColor.includes(', 0)'))) {
                                     risky_click_elements.push({
                                         tag: el.tagName,
                                         zIndex: zIndex,
-                                        opacity: style.opacity,
-                                        message: "Invisible high z-index overlay"
+                                        message: "Invisible high z-index overlay detected"
                                     });
                                 }
                             }
@@ -137,7 +186,7 @@ def analyze():
                             risky_forms.push({
                                 action: action,
                                 method: form.method || 'GET',
-                                warning: "Cross-domain submission"
+                                warning: "Submits data to external domain"
                             });
                         }
                     });
@@ -153,60 +202,41 @@ def analyze():
                         iframes: hidden_iframes,
                         clickjacking: risky_click_elements,
                         forms: risky_forms,
-                        links: links
+                        links: links,
+                        storage: storageUsage
                     };
                 }''')
             except Exception as e:
-                logging.error(f"Evaluation error: {e}")
-                analysis_results = {'iframes': [], 'clickjacking': [], 'forms': [], 'links': []}
+                logging.error(f"DOM Evaluation error: {e}")
+                dom_analysis = {'iframes': [], 'clickjacking': [], 'forms': [], 'links': [], 'storage': {}}
 
-            # 4. Deep Link Analysis (Recursive Scan)
+            # --- 5. Deep Link Scan (Top 5) ---
             deep_link_results = []
-            unique_links = {l['href']: l['text'] for l in analysis_results['links']}
-            # Limit to top 5 to ensure speed on free hosting
-            target_links = list(unique_links.items())[:5]
+            unique_links = {l['href']: l['text'] for l in dom_analysis['links']}
+            target_links = list(unique_links.items())[:5] # Scan top 5
             
             for link_url, link_text in target_links:
                 sub_page = None
                 try:
                     sub_page = context.new_page()
-                    sub_chain = []
-                    
+                    # Short timeout for deep links
                     try:
-                        # Shorter timeout for sub-scans
-                        sub_response = sub_page.goto(link_url, wait_until='domcontentloaded', timeout=20000)
+                        sub_response = sub_page.goto(link_url, wait_until='domcontentloaded', timeout=15000)
                         sub_final_url = sub_page.url
                         
-                        if sub_response:
-                            curr = sub_response.request
-                            while curr.redirected_from:
-                                sub_chain.insert(0, {
-                                    'url': curr.redirected_from.url, 
-                                    'status': 'Redirect'
-                                })
-                                curr = curr.redirected_from
-                            status = sub_response.status
-                        else:
-                            status = 'Error'
-                            sub_final_url = link_url
-                        
-                        sub_chain.append({'url': sub_final_url, 'status': status})
-                        
                         is_redirect = (link_url != sub_final_url) and (link_url + '/' != sub_final_url)
-
+                        
                         deep_link_results.append({
                             'original_text': link_text,
                             'original_url': link_url,
                             'final_url': sub_final_url,
-                            'chain': sub_chain,
                             'redirected': is_redirect
                         })
-
-                    except Exception as e:
+                    except Exception:
                         deep_link_results.append({
                             'original_text': link_text,
                             'original_url': link_url,
-                            'error': "Timeout or Connect Error"
+                            'error': "Connection Failed/Timeout"
                         })
                 except Exception:
                     pass
@@ -216,13 +246,23 @@ def analyze():
 
             browser.close()
 
+            # Compile Final Report
             return jsonify({
                 'final_url': final_url,
                 'redirect_chain': full_chain,
-                'hidden_iframes': analysis_results['iframes'],
-                'clickjacking_risks': analysis_results['clickjacking'],
-                'form_risks': analysis_results['forms'],
-                'deep_scan_results': deep_link_results
+                'hidden_iframes': dom_analysis['iframes'],
+                'clickjacking_risks': dom_analysis['clickjacking'],
+                'form_risks': dom_analysis['forms'],
+                'deep_scan_results': deep_link_results,
+                'network_summary': {
+                    'total_requests': len(network_activity),
+                    'external_domains': list(external_domains)[:15], # Top 15 external domains
+                    'types': [req['resourceType'] for req in network_activity[:50]]
+                },
+                'security_scan': {
+                    'suspicious_patterns': suspicious_patterns,
+                    'storage_usage': dom_analysis.get('storage', {})
+                }
             })
 
     except Exception as e:
