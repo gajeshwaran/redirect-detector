@@ -41,6 +41,25 @@ function displayResults(data, originalInput) {
     const results = document.getElementById('results');
     results.classList.remove('hidden');
 
+    // --- NEW: Phishing Banner ---
+    const banner = document.getElementById('phishingBanner');
+    if (data.simple_analysis && data.simple_analysis.phishing_verdict === 'High') {
+        banner.classList.remove('hidden');
+    } else {
+        banner.classList.add('hidden');
+    }
+
+    // --- NEW: Simple Summary ---
+    const summaryList = document.getElementById('simpleSummaryList');
+    summaryList.innerHTML = '';
+    if (data.simple_analysis && data.simple_analysis.summary) {
+        data.simple_analysis.summary.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            summaryList.appendChild(li);
+        });
+    }
+
     // --- NEW: Security Score ---
     const scoreVal = data.security_scan && data.security_scan.risk_score !== undefined ? data.security_scan.risk_score : 100;
     const verdict = data.security_scan && data.security_scan.verdict ? data.security_scan.verdict : 'Unknown';

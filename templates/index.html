@@ -55,6 +55,21 @@
                     </button>
                 </div>
 
+                <!-- NEW: Phishing & Simple Summary -->
+                <div id="phishingBanner" class="result-card glass-card hidden"
+                    style="border: 2px solid #ef4444; background: rgba(239, 68, 68, 0.1);">
+                    <h2 style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> PHISHING WARNING</h2>
+                    <p>This site exhibits high-risk behavior consistent with phishing scams.</p>
+                </div>
+
+                <div class="result-card glass-card" data-tilt>
+                    <div class="card-header">
+                        <i class="fa-solid fa-user-shield icon-glow"></i>
+                        <h2>Security Summary <span class="subtitle">(Plain English)</span></h2>
+                    </div>
+                    <ul id="simpleSummaryList" class="data-list" style="font-size: 1.1rem;"></ul>
+                </div>
+
                 <!-- NEW: Safety Score & Screenshot -->
                 <div class="grid-2-col" style="margin-bottom: 2rem;">
                     <div class="result-card glass-card" style="text-align: center;" data-tilt>

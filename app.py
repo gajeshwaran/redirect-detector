@@ -301,15 +301,11 @@ def analyze():
             server_info = {}
             try:
                 domain = urlparse(final_url).netloc
-                # Strip port if present
-                if ':' in domain:
-                    domain = domain.split(':')[0]
+                if ':' in domain: domain = domain.split(':')[0]
                 
-                # 1. DNS & GeoIP
                 ip_addr = socket.gethostbyname(domain)
                 geo_info = "Unknown"
                 try:
-                    # Low timeout for external API
                     r = requests.get(f"http://ip-api.com/json/{ip_addr}?fields=country,isp,org", timeout=3)
                     if r.status_code == 200:
                         d = r.json()
@@ -317,7 +313,6 @@ def analyze():
                 except:
                     pass
 
-                # 2. SSL Certificate
                 ssl_info = "No SSL"
                 if final_url.startswith('https'):
                     try:
@@ -328,7 +323,6 @@ def analyze():
                                 subject = dict(x[0] for x in cert['subject'])
                                 issuer = dict(x[0] for x in cert['issuer'])
                                 not_after = cert['notAfter']
-                                # Parse date (e.g. 'Oct 25 12:00:00 2024 GMT')
                                 ssl_info = {
                                     'issuer': issuer.get('organizationName', 'Unknown Issuer'),
                                     'subject': subject.get('commonName', domain),
@@ -337,19 +331,57 @@ def analyze():
                     except Exception as e:
                         ssl_info = f"SSL Error: {str(e)[:50]}"
 
-                server_info = {
-                    'ip': ip_addr,
-                    'location': geo_info,
-                    'ssl': ssl_info
-                }
+                server_info = {'ip': ip_addr, 'location': geo_info, 'ssl': ssl_info}
 
             except Exception as e:
                 logging.error(f"Server info error: {e}")
                 server_info = {'error': str(e)}
 
+            # --- 9. User-Friendly Intelligence (Phishing & Summary) ---
+            simplified_summary = []
+            phishing_score = 0
+            
+            # Simple Summary Checks
+            if final_url.startswith('https'):
+                simplified_summary.append("✅ Connection is secure (HTTPS).")
+            else:
+                simplified_summary.append("❌ Connection is NOT secure (Unencrypted HTTP).")
+                phishing_score += 20
+
+            if len(dom_analysis['iframes']) > 0:
+                simplified_summary.append(f"⚠️ Found {len(dom_analysis['iframes'])} hidden iframes (invisible boxes).")
+            
+            if len(dom_analysis['clickjacking']) > 0:
+                simplified_summary.append("⛔ DANGER: Invisible buttons found (Clickjacking risk).")
+                phishing_score += 50
+            
+            if len(full_chain) > 1:
+                simplified_summary.append(f"➡️ Site redirected you {len(full_chain)-1} times.")
+
+            # Phishing Heuristics
+            suspicious_keywords = ['login', 'verify', 'update', 'secure', 'account', 'banking', 'wallet']
+            url_lower = final_url.lower()
+            found_keywords = [kw for kw in suspicious_keywords if kw in url_lower]
+            
+            if found_keywords:
+                simplified_summary.append(f"⚠️ URL contains suspicious words: {', '.join(found_keywords)}.")
+                phishing_score += 15
+
+            # Fake urgency in content
+            urgency_words = ['immediate', 'suspended', 'lock', '24 hours']
+            try:
+                content_lower = page_content.lower()
+                for w in urgency_words:
+                    if w in content_lower:
+                        phishing_score += 10
+            except: pass
+
+            phishing_verdict = "Low"
+            if phishing_score > 30: phishing_verdict = "Medium"
+            if phishing_score > 60: phishing_verdict = "High"
+
             browser.close()
 
-            # Compile Final Report
             return jsonify({
                 'final_url': final_url,
                 'redirect_chain': full_chain,
@@ -359,7 +391,7 @@ def analyze():
                 'deep_scan_results': deep_link_results,
                 'network_summary': {
                     'total_requests': len(network_activity),
-                    'external_domains': list(external_domains)[:15], # Top 15 external domains
+                    'external_domains': list(external_domains)[:15],
                     'types': [req['resourceType'] for req in network_activity[:50]]
                 },
                 'security_scan': {
@@ -370,7 +402,12 @@ def analyze():
                     'risk_score': score,
                     'verdict': verdict
                 },
-                'server_info': server_info
+                'server_info': server_info,
+                'simple_analysis': {
+                    'summary': simplified_summary,
+                    'phishing_score': phishing_score,
+                    'phishing_verdict': phishing_verdict
+                }
             })
 
     except Exception as e:
