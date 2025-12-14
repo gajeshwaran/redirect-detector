@@ -1,6 +1,10 @@
 import os
 import logging
 import re
+import socket
+import ssl
+import datetime
+import requests
 from urllib.parse import urlparse
 from flask import Flask, render_template, request, jsonify
 from playwright.sync_api import sync_playwright
@@ -293,6 +297,56 @@ def analyze():
                     if sub_page:
                         sub_page.close()
 
+            # --- 8. Server & SSL Intelligence ---
+            server_info = {}
+            try:
+                domain = urlparse(final_url).netloc
+                # Strip port if present
+                if ':' in domain:
+                    domain = domain.split(':')[0]
+                
+                # 1. DNS & GeoIP
+                ip_addr = socket.gethostbyname(domain)
+                geo_info = "Unknown"
+                try:
+                    # Low timeout for external API
+                    r = requests.get(f"http://ip-api.com/json/{ip_addr}?fields=country,isp,org", timeout=3)
+                    if r.status_code == 200:
+                        d = r.json()
+                        geo_info = f"{d.get('country', 'Unknown')} - {d.get('isp', 'Unknown')}"
+                except:
+                    pass
+
+                # 2. SSL Certificate
+                ssl_info = "No SSL"
+                if final_url.startswith('https'):
+                    try:
+                        ctx = ssl.create_default_context()
+                        with socket.create_connection((domain, 443), timeout=3) as sock:
+                            with ctx.wrap_socket(sock, server_hostname=domain) as ssock:
+                                cert = ssock.getpeercert()
+                                subject = dict(x[0] for x in cert['subject'])
+                                issuer = dict(x[0] for x in cert['issuer'])
+                                not_after = cert['notAfter']
+                                # Parse date (e.g. 'Oct 25 12:00:00 2024 GMT')
+                                ssl_info = {
+                                    'issuer': issuer.get('organizationName', 'Unknown Issuer'),
+                                    'subject': subject.get('commonName', domain),
+                                    'expiry': not_after
+                                }
+                    except Exception as e:
+                        ssl_info = f"SSL Error: {str(e)[:50]}"
+
+                server_info = {
+                    'ip': ip_addr,
+                    'location': geo_info,
+                    'ssl': ssl_info
+                }
+
+            except Exception as e:
+                logging.error(f"Server info error: {e}")
+                server_info = {'error': str(e)}
+
             browser.close()
 
             # Compile Final Report
@@ -315,7 +369,8 @@ def analyze():
                     'screenshot': screenshot_b64,
                     'risk_score': score,
                     'verdict': verdict
-                }
+                },
+                'server_info': server_info
             })
 
     except Exception as e:

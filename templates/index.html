@@ -47,6 +47,14 @@
             </div>
 
             <div id="results" class="hidden">
+                <!-- Action Buttons -->
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+                    <button id="downloadReportBtn" class="analyze-btn"
+                        style="width: auto; padding: 0.8rem 1.5rem; background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                        <i class="fa-solid fa-file-export"></i> Save Report
+                    </button>
+                </div>
+
                 <!-- NEW: Safety Score & Screenshot -->
                 <div class="grid-2-col" style="margin-bottom: 2rem;">
                     <div class="result-card glass-card" style="text-align: center;" data-tilt>
@@ -70,6 +78,15 @@
                             <div id="noScreenshot" class="empty-state">No screenshot available</div>
                         </div>
                     </div>
+                </div>
+
+                <!-- NEW: Server Intelligence -->
+                <div class="result-card glass-card" data-tilt>
+                    <div class="card-header">
+                        <i class="fa-solid fa-server icon-blue"></i>
+                        <h2>Server Intelligence</h2>
+                    </div>
+                    <ul id="serverInfoList" class="data-list"></ul>
                 </div>
 
                 <!-- Status Card -->

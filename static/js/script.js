@@ -73,6 +73,37 @@ function displayResults(data, originalInput) {
         noShot.classList.remove('hidden');
     }
 
+    // --- NEW: Server Intelligence ---
+    const serverList = document.getElementById('serverInfoList');
+    serverList.innerHTML = '';
+    if (data.server_info) {
+        const s = data.server_info;
+        const ssl = typeof s.ssl === 'string' ? s.ssl : (s.ssl?.issuer ? `${s.ssl.issuer} (Expires: ${s.ssl.expiry})` : 'Valid');
+        const items = [
+            { icon: 'fa-network-wired', label: 'IP Address', value: s.ip },
+            { icon: 'fa-map-marker-alt', label: 'Location/ISP', value: s.location },
+            { icon: 'fa-lock', label: 'SSL Certificate', value: ssl }
+        ];
+
+        items.forEach(item => {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="fa-solid ${item.icon}"></i> <strong>${item.label}:</strong> ${item.value}`;
+            serverList.appendChild(li);
+        });
+    }
+
+    // Setup Download Button
+    document.getElementById('downloadReportBtn').onclick = () => {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `security_report_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
     // --- NEW: Security Headers ---
     const headersList = document.getElementById('paramsList');
     headersList.innerHTML = '';
