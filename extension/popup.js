@@ -1,5 +1,5 @@
 // Use the Live Tunnel URL for now, can be swapped for Render URL
-const API_URL = "https://bumpy-fans-float.loca.lt";
+const API_URL = "http://127.0.0.1:5000";
 // const API_URL = "https://redirect-detector.onrender.com"; // Production URL
 
 document.addEventListener('DOMContentLoaded', async () => {
