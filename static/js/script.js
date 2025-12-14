@@ -166,3 +166,78 @@ function displayResults(data, originalInput) {
         noLinks.classList.remove('hidden');
     }
 }
+
+/* --- New UI Interactions --- */
+
+document.addEventListener('DOMContentLoaded', () => {
+    initParallax();
+    initTilt();
+});
+
+function initParallax() {
+    // Select both orbs and the grid for parallax
+    const layers = document.querySelectorAll('.orb, .grid-overlay');
+
+    document.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth) - 0.5;
+        const y = (e.clientY / window.innerHeight) - 0.5;
+
+        layers.forEach(layer => {
+            const speed = parseFloat(layer.getAttribute('data-speed')) || 0.1;
+            const xOffset = x * 50 * speed;
+            const yOffset = y * 50 * speed;
+
+            // Apply translation. logic ensures we don't override the 'float' animation for orbs 
+            // by using variable translation if possible, checking if it conflicts with float keyframes.
+            // Simplified: we just translate. Orbs have their own keyframes for 'transform', 
+            // so we should wrap them or use margin. 
+            // Better approach for orbs with existing animation: change 'left'/'top' or margins.
+            // Or simpler: just let them float and parallax the container.
+
+            // For now, let's just move them via transform, it might override the float animation.
+            // Fix: wrapper div for float, inner div for parallax? 
+            // Or just add the translation to the keyframe? 
+            // Simplest: use margin.
+
+            layer.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+        });
+    });
+}
+
+function initTilt() {
+    const tiltContainers = document.querySelectorAll('[data-tilt]');
+    tiltContainers.forEach(applyTiltListener);
+}
+
+function applyTiltListener(card) {
+    card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        // Multipliers for effect intensity
+        const rotateX = ((y - centerY) / centerY) * -4;
+        const rotateY = ((x - centerX) / centerX) * 4;
+
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.01)`;
+
+        // Dynamic spotlight gradient
+        card.style.background = `
+            radial-gradient(
+                800px circle at ${x}px ${y}px, 
+                rgba(255,255,255,0.06),
+                rgba(30, 41, 59, 0.4) 40%
+            )
+        `;
+        card.style.borderColor = "rgba(255,255,255,0.2)";
+    });
+
+    card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+        card.style.background = 'var(--card-bg)';
+        card.style.borderColor = 'var(--border-color)';
+    });
+}

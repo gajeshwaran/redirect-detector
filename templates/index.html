@@ -6,73 +6,121 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invisible Redirect & Clickjacking Detector</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <h1>🛡️ Link Analyzer</h1>
-            <p>Reveal invisible redirects, hidden iframes, and clickjacking risks.</p>
-        </header>
+    <!-- Parallax Background Layers -->
+    <div class="parallax-wrapper">
+        <div class="orb orb-1" data-speed="-0.2"></div>
+        <div class="orb orb-2" data-speed="0.4"></div>
+        <div class="orb orb-3" data-speed="-0.6"></div>
+        <div class="grid-overlay"></div>
+    </div>
 
-        <section class="input-section">
-            <input type="text" id="urlInput" placeholder="Enter URL (e.g., http://example.com)" />
-            <button id="analyzeBtn">Analyze URL</button>
-        </section>
+    <div class="main-content" id="tilt-container">
+        <div class="container glass-panel">
+            <header>
+                <div class="badge-new">v2.0 Enhanced</div>
+                <h1>Link <span class="gradient-text">Analyzer</span></h1>
+                <p>Reveal invisible redirects, hidden iframes, and clickjacking risks.</p>
+            </header>
 
-        <div id="loading" class="hidden">
-            <div class="spinner"></div>
-            <p>Scanning URL in a secure sandbox...</p>
-        </div>
+            <section class="input-section">
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-link input-icon"></i>
+                    <input type="text" id="urlInput" placeholder="Paste suspicious URL here..." autocomplete="off" />
+                    <div class="input-border"></div>
+                </div>
+                <button id="analyzeBtn">
+                    <span>Analyze</span>
+                    <i class="fa-solid fa-rocket"></i>
+                </button>
+            </section>
 
-        <div id="results" class="hidden">
-            <div class="result-card destination-card">
-                <h2>📍 Final Destination</h2>
-                <p id="finalUrl" class="url-display"></p>
-                <div id="destinationWarning" class="warning-badge hidden">Differs from input!</div>
-                <a id="openLinkBtn" href="#" target="_blank" class="safe-btn">Open Safely (User Control)</a>
+            <div id="loading" class="hidden">
+                <div class="loader">
+                    <div class="scanner"></div>
+                </div>
+                <p>Scanning cybersecurity vectors...</p>
             </div>
 
-            <div class="result-card">
-                <h2>🔀 Redirect Chain</h2>
-                <ul id="redirectList" class="data-list"></ul>
-            </div>
+            <div id="results" class="hidden">
+                <!-- Status Card -->
+                <div class="result-card glass-card" data-tilt>
+                    <div class="card-header">
+                        <i class="fa-solid fa-flag-checkered icon-glow"></i>
+                        <h2>Final Destination</h2>
+                    </div>
+                    <div class="url-box">
+                        <p id="finalUrl" class="url-text"></p>
+                    </div>
+                    <div id="destinationWarning" class="warning-badge hidden">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Differs from input!
+                    </div>
+                    <a id="openLinkBtn" href="#" target="_blank" class="safe-btn">
+                        Open Safely <i class="fa-solid fa-external-link-alt"></i>
+                    </a>
+                </div>
 
-            <div class="result-card">
-                <h2>👻 Hidden Iframes</h2>
-                <ul id="iframeList" class="data-list"></ul>
-                <p id="noIframes" class="empty-state">No hidden iframes detected.</p>
-            </div>
+                <!-- Redirect Chain -->
+                <div class="result-card glass-card" data-tilt>
+                    <div class="card-header">
+                        <i class="fa-solid fa-shoe-prints icon-blue"></i>
+                        <h2>Redirect Chain</h2>
+                    </div>
+                    <ul id="redirectList" class="data-list"></ul>
+                </div>
 
-            <div class="result-card">
-                <h2>🖱️ Clickjacking Risks</h2>
-                <ul id="clickjackingList" class="data-list"></ul>
-                <p id="noClickjacking" class="empty-state">No transparent overlays detected.</p>
-            </div>
+                <!-- Grid for Security Checks -->
+                <div class="grid-2-col">
+                    <div class="result-card glass-card" data-tilt>
+                        <div class="card-header">
+                            <i class="fa-solid fa-eye-slash icon-purple"></i>
+                            <h2>Hidden Iframes</h2>
+                        </div>
+                        <ul id="iframeList" class="data-list"></ul>
+                        <p id="noIframes" class="empty-state"><i class="fa-solid fa-check-circle"></i> No hidden iframes detected.</p>
+                    </div>
 
-            <div class="result-card">
-                <h2>📝 Form Risks</h2>
-                <ul id="formList" class="data-list"></ul>
-                <p id="noForms" class="empty-state">No cross-domain forms detected.</p>
-            </div>
+                    <div class="result-card glass-card" data-tilt>
+                        <div class="card-header">
+                            <i class="fa-solid fa-arrow-pointer icon-red"></i>
+                            <h2>Clickjacking</h2>
+                        </div>
+                        <ul id="clickjackingList" class="data-list"></ul>
+                        <p id="noClickjacking" class="empty-state"><i class="fa-solid fa-check-circle"></i> No clickjacking risks.</p>
+                    </div>
+                </div>
 
-            <div class="result-card">
-                <h2>🔗 Deep Link Inspector (Top 10)</h2>
-                <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem;">We clicked links on the page so you
-                    don't have to.</p>
-                <div class="table-responsive">
-                    <table id="deepScanTable" class="hidden">
-                        <thead>
-                            <tr>
-                                <th>Link Text</th>
-                                <th>Analysis</th>
-                                <th>Verdict</th>
-                            </tr>
-                        </thead>
-                        <tbody id="deepScanBody"></tbody>
-                    </table>
-                    <p id="noLinks" class="empty-state hidden">No accessible links found to analyze.</p>
+                <div class="result-card glass-card" data-tilt>
+                     <div class="card-header">
+                        <i class="fa-solid fa-keyboard icon-orange"></i>
+                        <h2>Form Risks</h2>
+                    </div>
+                    <ul id="formList" class="data-list"></ul>
+                    <p id="noForms" class="empty-state"><i class="fa-solid fa-check-circle"></i> No hazardous forms found.</p>
+                </div>
+
+                <div class="result-card glass-card" data-tilt>
+                     <div class="card-header">
+                        <i class="fa-solid fa-spider icon-teal"></i>
+                        <h2>Deep Link Inspector <span class="subtitle">(Top 10)</span></h2>
+                    </div>
+                    <div class="table-container">
+                        <table id="deepScanTable" class="hidden">
+                            <thead>
+                                <tr>
+                                    <th>Link Text</th>
+                                    <th>Analysis</th>
+                                    <th>Verdict</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deepScanBody"></tbody>
+                        </table>
+                        <p id="noLinks" class="empty-state hidden">No accessible links found to analyze.</p>
+                    </div>
                 </div>
             </div>
         </div>
