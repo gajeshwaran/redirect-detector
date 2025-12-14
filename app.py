@@ -50,7 +50,7 @@ def analyze():
             # We can inspect the request chain of the final response.
             
             try:
-                response = page.goto(url, wait_until='networkidle', timeout=15000)
+                response = page.goto(url, wait_until='networkidle', timeout=60000)
                 final_url = page.url
                 
                 # Reconstruct redirect chain from the request
@@ -170,7 +170,7 @@ def analyze():
                     # Capture redirects for this specific link
                     # Note: Playwright's response.request.redirect_chain is useful, or we can manually track
                     try:
-                        sub_response = sub_page.goto(link_url, wait_until='domcontentloaded', timeout=10000)
+                        sub_response = sub_page.goto(link_url, wait_until='domcontentloaded', timeout=30000)
                         sub_final_url = sub_page.url
                         
                         # Chain reconstruction
