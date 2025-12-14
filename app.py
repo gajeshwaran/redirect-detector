@@ -210,7 +210,56 @@ def analyze():
                 logging.error(f"DOM Evaluation error: {e}")
                 dom_analysis = {'iframes': [], 'clickjacking': [], 'forms': [], 'links': [], 'storage': {}}
 
-            # --- 5. Deep Link Scan (Top 5) ---
+            # --- 5. Screenshot & Visuals ---
+            screenshot_b64 = None
+            try:
+                # Capture full page or viewport screenshot
+                import base64
+                screenshot_bytes = page.screenshot(type='jpeg', quality=60, full_page=False)
+                screenshot_b64 = base64.b64encode(screenshot_bytes).decode('utf-8')
+            except Exception as e:
+                logging.error(f"Screenshot error: {e}")
+
+            # --- 6. Security Header Analysis ---
+            security_headers = {}
+            score = 100
+            risk_factors = []
+            
+            if response:
+                headers = response.headers
+                
+                # Check for key security headers
+                checks = {
+                    'Strict-Transport-Security': 'HSTS (Prevents downgrade attacks)',
+                    'Content-Security-Policy': 'CSP (Mitigates XSS/Injection)',
+                    'X-Frame-Options': 'Clickjacking Protection',
+                    'X-Content-Type-Options': 'MIME Sniffing Protection',
+                    'Referrer-Policy': 'Referrer Leakage Control'
+                }
+                
+                for header, desc in checks.items():
+                    # Playwright headers are lowercase
+                    val = headers.get(header.lower())
+                    if val:
+                        security_headers[header] = {'present': True, 'value': val[:50] + '...', 'desc': desc}
+                    else:
+                        security_headers[header] = {'present': False, 'value': 'Missing', 'desc': desc}
+                        score -= 10 # Deduct score for missing headers
+
+            # Calculate Risk Verdict
+            if dom_analysis['iframes']: score -= 20
+            if dom_analysis['clickjacking']: score -= 30
+            if dom_analysis['forms']: score -= 10
+            if suspicious_patterns: score -= 20
+            if len(external_domains) > 5: score -= 10
+            
+            if score < 0: score = 0
+            
+            verdict = "Low Risk"
+            if score < 70: verdict = "Medium Risk"
+            if score < 40: verdict = "High Risk"
+
+            # --- 7. Deep Link Scan (Top 5) ---
             deep_link_results = []
             unique_links = {l['href']: l['text'] for l in dom_analysis['links']}
             target_links = list(unique_links.items())[:5] # Scan top 5
@@ -261,7 +310,11 @@ def analyze():
                 },
                 'security_scan': {
                     'suspicious_patterns': suspicious_patterns,
-                    'storage_usage': dom_analysis.get('storage', {})
+                    'storage_usage': dom_analysis.get('storage', {}),
+                    'headers': security_headers,
+                    'screenshot': screenshot_b64,
+                    'risk_score': score,
+                    'verdict': verdict
                 }
             })
 

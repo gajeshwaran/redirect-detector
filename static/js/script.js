@@ -41,6 +41,61 @@ function displayResults(data, originalInput) {
     const results = document.getElementById('results');
     results.classList.remove('hidden');
 
+    // --- NEW: Security Score ---
+    const scoreVal = data.security_scan && data.security_scan.risk_score !== undefined ? data.security_scan.risk_score : 100;
+    const verdict = data.security_scan && data.security_scan.verdict ? data.security_scan.verdict : 'Unknown';
+
+    document.getElementById('scoreValue').textContent = scoreVal;
+    document.getElementById('riskVerdict').textContent = verdict;
+
+    // Animate Circle
+    const circle = document.getElementById('scoreCirclePath');
+    // Stroke dasharray: 100, so we set the first value
+    circle.setAttribute('stroke-dasharray', `${scoreVal}, 100`);
+
+    // Color coding
+    let scoreColor = '#10b981'; // green
+    if (scoreVal < 70) scoreColor = '#f59e0b'; // orange
+    if (scoreVal < 40) scoreColor = '#ef4444'; // red
+    circle.style.stroke = scoreColor;
+    document.getElementById('riskVerdict').style.color = scoreColor;
+
+    // --- NEW: Screenshot ---
+    const imgEl = document.getElementById('siteScreenshot');
+    const noShot = document.getElementById('noScreenshot');
+
+    if (data.security_scan && data.security_scan.screenshot) {
+        imgEl.src = 'data:image/jpeg;base64,' + data.security_scan.screenshot;
+        imgEl.classList.remove('hidden');
+        noShot.classList.add('hidden');
+    } else {
+        imgEl.classList.add('hidden');
+        noShot.classList.remove('hidden');
+    }
+
+    // --- NEW: Security Headers ---
+    const headersList = document.getElementById('paramsList');
+    headersList.innerHTML = '';
+
+    if (data.security_scan && data.security_scan.headers) {
+        for (const [key, info] of Object.entries(data.security_scan.headers)) {
+            const li = document.createElement('li');
+            const icon = info.present ? '<i class="fa-solid fa-check" style="color: var(--success)"></i>' : '<i class="fa-solid fa-xmark" style="color: var(--danger)"></i>';
+            const valStyle = info.present ? 'color: var(--text-primary)' : 'color: var(--text-secondary); font-style: italic';
+
+            li.innerHTML = `
+                <div style="flex: 1">
+                    <strong>${key}</strong> <br>
+                    <small style="color: var(--text-secondary)">${info.desc}</small>
+                </div>
+                <div style="text-align: right">
+                   ${icon} <span style="${valStyle}">${info.value}</span>
+                </div>
+            `;
+            headersList.appendChild(li);
+        }
+    }
+
     // 1. Final Destination
     const finalUrlEl = document.getElementById('finalUrl');
     finalUrlEl.textContent = data.final_url;

@@ -86,7 +86,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: 
+    background-image:
         linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     background-size: 50px 50px;
@@ -94,8 +94,15 @@ body {
 }
 
 @keyframes float {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(30px, -30px); }
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(30px, -30px);
+    }
 }
 
 /* --- Main Layout --- */
@@ -162,9 +169,17 @@ header h1 {
 }
 
 @keyframes gradient-move {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 header p {
@@ -297,12 +312,30 @@ button:active {
     font-size: 1.25rem;
 }
 
-.icon-glow { color: var(--success); text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
-.icon-blue { color: var(--accent-blue); }
-.icon-purple { color: var(--accent-purple); }
-.icon-red { color: var(--danger); }
-.icon-orange { color: var(--warning); }
-.icon-teal { color: var(--accent-cyan); }
+.icon-glow {
+    color: var(--success);
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.icon-blue {
+    color: var(--accent-blue);
+}
+
+.icon-purple {
+    color: var(--accent-purple);
+}
+
+.icon-red {
+    color: var(--danger);
+}
+
+.icon-orange {
+    color: var(--warning);
+}
+
+.icon-teal {
+    color: var(--accent-cyan);
+}
 
 /* --- Content Styling --- */
 .url-box {
@@ -409,8 +442,14 @@ button:active {
 }
 
 @keyframes scan {
-    0% { left: 0%; }
-    100% { left: 100%; transform: translateX(-100%); }
+    0% {
+        left: 0%;
+    }
+
+    100% {
+        left: 100%;
+        transform: translateX(-100%);
+    }
 }
 
 .hidden {
@@ -428,7 +467,8 @@ table {
     font-size: 0.95rem;
 }
 
-th, td {
+th,
+td {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
@@ -447,21 +487,101 @@ th {
     .grid-2-col {
         grid-template-columns: 1fr;
     }
-    
+
     header h1 {
         font-size: 2.5rem;
     }
-    
+
     .input-section {
         flex-direction: column;
     }
-    
+
     button {
         width: 100%;
         justify-content: center;
     }
-    
+
     .container {
         padding: 1.5rem;
     }
+}
+
+/* --- Score Circle --- */
+.score-circle {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+}
+
+.circular-chart {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 2.5;
+}
+
+.circle {
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    animation: progress 1s ease-out forwards;
+    transform: rotate(0deg);
+    transform-origin: 50% 50%;
+    transition: stroke 0.3s;
+}
+
+.percentage {
+    fill: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-weight: bold;
+    font-size: 0.6rem;
+    text-anchor: middle;
+}
+
+@keyframes progress {
+    0% {
+        stroke-dasharray: 0, 100;
+    }
+}
+
+/* --- Screenshot --- */
+.screenshot-container {
+    width: 100%;
+    height: 200px;
+    /* fixed height */
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+}
+
+.screenshot-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Cover or contain depending on preference */
+    object-position: top;
+    transition: transform 0.3s;
+}
+
+.screenshot-container:hover img {
+    transform: scale(1.05);
+}
+
+/* --- Responsive Text --- */
+.badge-new {
+    font-size: 0.7rem;
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--accent-blue);
+    border: 1px solid rgba(59, 130, 246, 0.3);
 }
