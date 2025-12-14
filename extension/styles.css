@@ -1,0 +1,137 @@
+/* Invisible Redirect Protector Styles */
+
+#ir-protector-badge {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 2147483647;
+    /* Max Z-Index to stay on top */
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.ir-shield {
+    background: rgba(30, 41, 59, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.ir-shield:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.ir-icon {
+    font-size: 20px;
+}
+
+.ir-status {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Status Colors */
+.ir-shield.safe {
+    border-color: #10b981;
+}
+
+.ir-shield.safe .ir-icon {
+    filter: drop-shadow(0 0 5px #10b981);
+}
+
+.ir-shield.warning {
+    border-color: #f59e0b;
+}
+
+.ir-shield.warning .ir-icon {
+    content: '⚠️';
+}
+
+.ir-shield.danger {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.ir-shield.danger .ir-icon {
+    content: '🚨';
+}
+
+.ir-shield.logging {
+    border-color: #3b82f6;
+}
+
+/* Popup Card */
+#ir-popup {
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    width: 300px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    color: white;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    opacity: 1;
+    transition: opacity 0.2s;
+    display: block;
+}
+
+.ir-hidden {
+    display: none !important;
+}
+
+#ir-title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+
+#ir-summary {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 15px 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#ir-summary li {
+    font-size: 13px;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+    padding-left: 15px;
+    position: relative;
+}
+
+#ir-summary li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #64748b;
+}
+
+.ir-btn {
+    display: block;
+    text-align: center;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ir-btn:hover {
+    opacity: 0.9;
+}

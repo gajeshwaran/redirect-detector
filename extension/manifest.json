@@ -1,26 +1,32 @@
 {
   "manifest_version": 3,
-  "name": "Invisible Redirect Detector",
+  "name": "Invisible Redirect Protector",
   "version": "1.0",
-  "description": "Analyze the current tab for invisible redirects and security risks.",
+  "description": "Real-time security analysis for every site you visit. Based on 'Invisible Redirect Detector'.",
   "permissions": [
     "activeTab",
     "scripting"
   ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icon16.png",
-      "48": "icon48.png",
-      "128": "icon128.png"
+  "host_permissions": [
+    "http://localhost:8080/*",
+    "https://invisible-redirect-detector.onrender.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "styles.css"
+      ]
     }
-  },
+  ],
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",
     "128": "icon128.png"
-  },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }
